@@ -10,12 +10,13 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     env:
       CI: false
     strategy:
       matrix:
         node-version: [12.6]
+        os: [macOS-10.14, windows-2016, ubuntu-20.04]
 
     steps:
     - uses: actions/checkout@v2
@@ -58,20 +59,15 @@ jobs:
         id: build
         run: |
           npm run electron-pack
-          echo "Building $APP_VERSION-$HASH"
-          ./node_modules/.bin/gulp release-linux-deb --out=../artifacts/$ARTIFACT_NAME
           
-      - name: Read version
+      - name: Cleanup artifacts
         run: |
-          echo "::set-env name=APP_VERSION::$(node -p -e "require('./package.json').version")"
-      - name: Set artifact name
-        run: echo "::set-env name=ARTIFACT_NAME::$(echo "$APP_NAME-linux-x64-$APP_VERSION-$HASH.deb")"
-
-      - uses: actions/upload-artifact@v1
-        name: Upload artifacts
+          npx rimraf "dist/!(*.exe|*.deb|*.AppImage|*.dmg)"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
         with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ../artifacts/
+          name: ${{ matrix.os }}
+          path: dist
 
 #   build-windows:
 #     name: Build Windows
