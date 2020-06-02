@@ -12,7 +12,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      CI: true
+      CI: false
     strategy:
       matrix:
         node-version: [12.6]
@@ -30,14 +30,14 @@ jobs:
     - name: npm install
       run: npm ci
 
-    - name: npm build
-      run: npm run build
+#     - name: npm build
+#       run: npm run build
 
   build-linux:
     name: Build Linux
     runs-on: ubuntu-latest
     env:
-      CI: true
+      CI: false
     steps:
       - uses: actions/setup-node@v1
         with:
@@ -68,7 +68,7 @@ jobs:
     name: Build Windows
     runs-on: windows-latest
     env:
-      CI: true
+      CI: false
     steps:
       - uses: actions/setup-node@v1
         with:
