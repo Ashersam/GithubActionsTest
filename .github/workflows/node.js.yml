@@ -35,7 +35,14 @@ jobs:
       id: build
       run: |
         npm run electron-pack
-          
+    - name: Cleanup artifacts
+      run: |
+        npx rimraf "dist/!(*.exe|*.deb|*.AppImage|*.dmg)"
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{ matrix.os }}
+        path: dist
     - name: Cleanup artifacts
       if: matrix.os != 'windows-latest'
       run: |
