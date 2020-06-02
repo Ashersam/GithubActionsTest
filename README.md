@@ -1,2 +1,2 @@
-# GithubActionsTest
-Test CI and CD using github actions
+# Autographa CI and CD
+** Github Actions test
