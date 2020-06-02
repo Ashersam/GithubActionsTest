@@ -30,44 +30,20 @@ jobs:
     
     - name: npm install
       run: npm ci
-
-#     - name: npm build
-#       run: npm run build
-
-  build-linux:
-    name: Build Linux
-    runs-on: ubuntu-latest
-    env:
-      CI: false
-    steps:
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '12.6.0'
-      - name: Node version
-        run: |
-          node --version
-          npm --version
-      - name: Checkout codebase
-        uses: actions/checkout@v1
-        with:
-          submodules: recursive
       
-      - name: npm install
-        run: npm ci
-
-      - name: build linux
-        id: build
-        run: |
-          npm run electron-pack
+    - name: build linux
+      id: build
+      run: |
+        npm run electron-pack
           
-      - name: Cleanup artifacts
-        run: |
-          npx rimraf "dist/!(*.exe|*.deb|*.AppImage|*.dmg)"
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: ${{ matrix.os }}
-          path: dist
+    - name: Cleanup artifacts
+      run: |
+        npx rimraf "dist/!(*.exe|*.deb|*.AppImage|*.dmg)"
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{ matrix.os }}
+        path: dist
 
 #   build-windows:
 #     name: Build Windows
