@@ -58,6 +58,7 @@ jobs:
         id: build
         run: |
           npm run electron-pack
+          echo "Building $APP_VERSION-$HASH"
           ./node_modules/.bin/gulp release-linux-deb --out=../artifacts/$ARTIFACT_NAME
           
       - name: Read version
