@@ -58,37 +58,40 @@ jobs:
         id: build
         run: |
           npm run electron-pack
+      - name: Set artifact name
+        run: echo "::set-env name=ARTIFACT_NAME::$(echo "$APP_NAME-linux-x64-$APP_VERSION-$HASH.deb")"
+
       - uses: actions/upload-artifact@v1
         name: Upload artifacts
         with:
-          name: Linux
-          path: ../artifacts/
+          name: ${{ env.ARTIFACT_NAME }}
+          path: /dist/
 
-  build-windows:
-    name: Build Windows
-    runs-on: windows-latest
-    env:
-      CI: false
-    steps:
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '12.6.0'
+#   build-windows:
+#     name: Build Windows
+#     runs-on: windows-latest
+#     env:
+#       CI: false
+#     steps:
+#       - uses: actions/setup-node@v1
+#         with:
+#           node-version: '12.6.0'
 
-      - name: Node version
-        run: |
-          node --version
-          npm --version
-      - uses: actions/checkout@v2
+#       - name: Node version
+#         run: |
+#           node --version
+#           npm --version
+#       - uses: actions/checkout@v2
 
-      - name: npm install
-        run: npm ci
+#       - name: npm install
+#         run: npm ci
 
-      - name: build windows
-        run: |
-          npm run electron-pack
+#       - name: build windows
+#         run: |
+#           npm run electron-pack
 
-      - uses: actions/upload-artifact@v1
-        name: Upload x64 artifacts
-        with:
-          name: AgWin
-          path: ../artifacts/x64/
+#       - uses: actions/upload-artifact@v1
+#         name: Upload x64 artifacts
+#         with:
+#           name: AgWin
+#           path: ../artifacts/x64/
