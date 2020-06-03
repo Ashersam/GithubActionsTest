@@ -35,6 +35,7 @@ jobs:
             - name: build linux and mac
               id: build
               run: |
+                  npm run build
                   npm run electron-pack
 
             - name: Cleanup artifacts
@@ -73,6 +74,7 @@ jobs:
             - name: build windows
               id: build
               run: |
+                  npm run build
                   npm run electron-pack
 
             - name: Cleanup artifacts
