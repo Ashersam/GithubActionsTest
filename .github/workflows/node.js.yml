@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         node-version: [12.6]
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -31,56 +31,58 @@ jobs:
     - name: npm install
       run: npm ci
       
-    - name: build linux
+    - name: build linux and mac
       id: build
       run: |
         npm run electron-pack
         
     - name: Cleanup artifacts
-      if: matrix.os != 'windows-latest'
       run: |
-        npx rimraf "dist/!(*.exe|*.deb|*.AppImage|*.dmg)"
+        npx rimraf "dist/!(*.deb|*.AppImage|*.dmg)"
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:
         name: ${{ matrix.os }}
         path: dist
-    - name: Cleanup artifacts Win
-      if: matrix.os == 'windows-latest'
-      run: |
-        mkdir artifacts
-        mv dist/*.exe artifacts
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v1
-      with:
-        name: ${{matrix.os}}
-        path: artifacts
 
-#   build-windows:
-#     name: Build Windows
-#     runs-on: windows-latest
-#     env:
-#       CI: false
-#     steps:
-#       - uses: actions/setup-node@v1
-#         with:
-#           node-version: '12.6.0'
-
-#       - name: Node version
-#         run: |
-#           node --version
-#           npm --version
-#       - uses: actions/checkout@v2
-
-#       - name: npm install
-#         run: npm ci
-
-#       - name: build windows
-#         run: |
-#           npm run electron-pack
-
-#       - uses: actions/upload-artifact@v1
-#         name: Upload x64 artifacts
-#         with:
-#           name: AgWin
-#           path: ../artifacts/x64/
+  build-windows:
+      runs-on: ${{ matrix.os }}
+      env:
+        CI: false
+      strategy:
+        matrix:
+          node-version: [12.6]
+          os: [windows-latest]
+      steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: |
+          node --version
+          npm --version
+           
+      - name: npm install
+        run: npm ci
+      
+      - name: build linux and mac
+        id: build
+        run: |
+          npm run electron-pack
+        
+      - name: Cleanup artifacts
+        if: matrix.os != 'windows-latest'
+        run: |
+          mkdir artifacts
+          mv "dist/(*.exe,*.deb,*.AppImage,*.dmg)" artifacts || true
+      - name: Cleanup artifacts Win
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir artifacts
+          mv dist/*.exe artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{matrix.os}}
+          path: artifacts
