@@ -32,9 +32,6 @@ jobs:
             - name: npm install
               run: npm ci
 
-            - name: npm lint
-              run: npm run lint
-
             - name: build linux and mac
               id: build
               run: |
@@ -76,6 +73,7 @@ jobs:
             - name: build linux and mac
               id: build
               run: |
+                  npm run build
                   npm run electron-pack
 
             - name: Cleanup artifacts
