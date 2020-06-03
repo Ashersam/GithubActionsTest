@@ -171,7 +171,7 @@ body {
 .prespace {
     white-space: pre-wrap
 }
-</style>`
+</style>`;
 
 const css_2_col_ltr = `<style >
 body {
@@ -347,7 +347,7 @@ body {
     white-space: pre-wrap
 }
 
-</style>`
+</style>`;
 
 const css_1_col_rtl = `<style>
     body {
@@ -481,7 +481,7 @@ const css_1_col_rtl = `<style>
         white-space: pre-wrap
     }
 
-</style>`
+</style>`;
 
 const css_2_col_rtl = `<style>
     body {
@@ -614,11 +614,11 @@ const css_2_col_rtl = `<style>
     .prespace {
         white-space: pre-wrap
     }
-    </style>`
+    </style>`;
 
 module.exports = {
-    css_1_col_ltr,
-    css_2_col_ltr,
-    css_1_col_rtl,
-    css_2_col_rtl
-}
+  css_1_col_ltr,
+  css_2_col_ltr,
+  css_1_col_rtl,
+  css_2_col_rtl,
+};

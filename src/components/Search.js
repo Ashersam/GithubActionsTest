@@ -1,295 +1,352 @@
-import React from 'react';
-import RaisedButton from 'material-ui/RaisedButton';
-import TextField from 'material-ui/TextField';
-import {RadioButton, RadioButtonGroup} from 'material-ui/RadioButton';
-import { observer } from "mobx-react"
+import React from "react";
+import { withStyles, makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import MuiDialogTitle from "@material-ui/core/DialogTitle";
+import MuiDialogContent from "@material-ui/core/DialogContent";
+import MuiDialogActions from "@material-ui/core/DialogActions";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import Typography from "@material-ui/core/Typography";
+import SearchIcon from "@material-ui/icons/Search";
+import Radio from "@material-ui/core/Radio";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormControl from "@material-ui/core/FormControl";
+import TextField from "@material-ui/core/TextField";
 import AutographaStore from "./AutographaStore";
-import { FormattedMessage } from 'react-intl';
-import Loader from './Loader';
-const Modal = require('react-bootstrap/lib/Modal');
-const FormGroup = require('react-bootstrap/lib/FormGroup')
-const db = require(`${__dirname}/../util/data-provider`).targetDb();
-var replacedChapter = {},
-    replacedVerse = {},
+const db = require(`${__dirname}/../core/data-provider`).targetDb();
+const styles = (theme) => ({
+  root: {
+    margin: 0,
+    padding: theme.spacing(2),
+  },
+  closeButton: {
+    position: "absolute",
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500],
+  },
+});
+
+const useStyles = makeStyles((theme) => ({
+  formRoot: {
+    "& > *": {
+      margin: theme.spacing(1),
+      width: "25ch",
+    },
+  },
+}));
+
+const DialogTitle = withStyles(styles)((props) => {
+  const { children, classes, onClose, ...other } = props;
+  return (
+    <MuiDialogTitle disableTypography className={classes.root} {...other}>
+      <Typography variant="h6">{children}</Typography>
+      {onClose ? (
+        <IconButton
+          aria-label="close"
+          className={classes.closeButton}
+          onClick={onClose}
+        >
+          <CloseIcon />
+        </IconButton>
+      ) : null}
+    </MuiDialogTitle>
+  );
+});
+
+const DialogContent = withStyles((theme) => ({
+  root: {
+    padding: theme.spacing(2),
+  },
+}))(MuiDialogContent);
+
+const DialogActions = withStyles((theme) => ({
+  root: {
+    margin: 0,
+    padding: theme.spacing(1),
+  },
+}))(MuiDialogActions);
+
+export default function Search() {
+  const classes = useStyles();
+  const [open, setOpen] = React.useState(false);
+  const [replaceInfo, setReplaceInfo] = React.useState(false);
+  const [searchValue, setSearchValue] = React.useState("");
+  const [replaceValue, setReplaceValue] = React.useState("");
+  const [replaceOption, setReplaceOption] = React.useState("chapter");
+  const [replaceCount, setReplaceCount] = React.useState();
+  const [replacedChapters, setReplacedChapters] = React.useState({});
+  var replacedVerse = {},
     allChapters = {},
     chapter_hash = {},
     verses_arr = [],
     chapter_arr = [];
-@observer
-class SearchModal extends React.Component {
-        
-  constructor(props) {
-    super(props);
-    this.handleFindChange = this.handleFindChange.bind(this);
-    this.handleReplaceChange = this.handleReplaceChange.bind(this);
-      this.state = {
-        showModalSearch: this.props.show,
-        checked: false,
-        replaceInfo: false,
-        replaceCount: 0,
-        disableSave: false,
-        loader: false,
-      };
-    }
 
-    searchRegExp(str) {
-        return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-    }
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+  const handleClose = () => {
+    setOpen(false);
+    window.location.reload();
+  };
 
-    handleFindChange(event) {
-      AutographaStore.searchValue = event.target.value
-    }
+  const handleFindChange = (event) => {
+    setSearchValue(event.target.value);
+  };
 
-    handleReplaceChange(event) {
-      AutographaStore.replaceValue = event.target.value
-    }
-    handleOption = (event) => {
-      AutographaStore.replaceOption = event.target.value
-    } 
+  const handleReplaceChange = (event) => {
+    setReplaceValue(event.target.value);
+  };
+  const handleOption = (event) => {
+    setReplaceOption(event.target.value);
+  };
 
-    findAndReplaceText = (searchVal, replaceVal, option) => {
-      let that = this;
-      let allChapterReplaceCount = [];
+  const findAndReplaceText = () => {
+    let allChapterReplaceCount = [];
 
-      db.get(AutographaStore.bookId.toString()).then((doc) => {
-              let currentBook = doc;
-              let totalReplacedWord = 0;
-              if (option == "chapter") {
-                  totalReplacedWord = that.findReplaceSearchInputs(doc.chapters[parseInt(AutographaStore.chapterId, 10) - 1].verses, AutographaStore.chapterId - 1, searchVal, replaceVal, option);
-                  allChapterReplaceCount.push(totalReplacedWord);
-              } else {
-                  for (let i = 0; i < doc.chapters.length; i++) {
-                      let replaceWord = that.findReplaceSearchInputs(doc.chapters[parseInt(i + 1, 10) - 1].verses, i, searchVal, replaceVal, option);
-                      allChapterReplaceCount.push(replaceWord)
-                      replaceWord = 0;
-                  }                  
-              }
-              var replacedCount = allChapterReplaceCount.reduce(function(a, b) {
-                    return a + b;
-              }, 0);
-              this.setState({replaceCount: replacedCount, replaceInfo: true })
-              if(this.state.replaceCount === 0)
-              this.setState({ disableSave: true })
-              totalReplacedWord = 0;
-              allChapterReplaceCount = [];
-          });
-        
-    }
-
-    findReplaceSearchInputs = (verses, chapter, searchVal, replaceVal, option) => {
-      let replacedVerse = {};
-      let i;
-      let that = this;
-      let replaceCount = 0;
-      for (i = 1; i <= verses.length; i++) {
-          if (option === "chapter") {
-              let originalVerse = verses[i - 1].verse;
-              replacedVerse[i] = i
-              if (originalVerse.search(new RegExp(that.searchRegExp(searchVal), 'g')) >= 0) {
-                  let modifiedVerse = originalVerse.replace(new RegExp(that.searchRegExp(searchVal), 'g'), replaceVal);
-                  replacedVerse[i] = modifiedVerse;
-                  chapter_hash["verse"] = modifiedVerse;
-                  chapter_hash["verse_number"] = i;
-                  verses_arr.push(chapter_hash);
-                  chapter_hash = {};
-                  replaceCount += originalVerse.match(new RegExp(that.searchRegExp(searchVal), 'g')).length;
-              } else {
-                  replacedVerse[i] = originalVerse;
-                  chapter_hash["verse"] = originalVerse;
-                  chapter_hash["verse_number"] = i;
-                  verses_arr.push(chapter_hash);
-                  chapter_hash = {};
-                  replaceCount += 0;
-              }
-          } else {
-              let originalVerse = verses[i - 1].verse
-              replacedVerse[i] = i;
-              if (originalVerse.search(new RegExp(that.searchRegExp(searchVal), 'g')) >= 0) {
-                  let modifiedVerse = originalVerse.replace(new RegExp(that.searchRegExp(searchVal), 'g'), replaceVal);
-                  chapter_hash["verse"] = modifiedVerse;
-                  chapter_hash["verse_number"] = i;
-                  verses_arr.push(chapter_hash);
-                  chapter_hash = {};
-                  replaceCount += originalVerse.match(new RegExp(searchVal, 'g')).length;
-
-              } else {
-                  chapter_hash["verse"] = originalVerse;
-                  chapter_hash["verse_number"] = i;
-                  verses_arr.push(chapter_hash);
-                  chapter_hash = {};
-                  replaceCount += 0;
-              }
-          }
-      }
-      replacedChapter[chapter] = replacedVerse;
-      allChapters["chapter"] = chapter + 1;
-      allChapters["verses"] = verses_arr;
-      chapter_arr.push(allChapters);
-      verses_arr = [];
-      allChapters = {};
-      // highlightRef();
-      return replaceCount;
-    }
-
-    saveReplacedText = () => {
-    const that = this;
     db.get(AutographaStore.bookId.toString()).then((doc) => {
-        if (AutographaStore.replaceOption === "chapter") {
-            for (var c in replacedChapter) {
-                var verses = (doc.chapters[AutographaStore.chapterId-1]).verses
-                verses.forEach((verse, index)=> {
-                    verse.verse = replacedChapter[c][index + 1];
-                });
-                doc.chapters[parseInt(c, 10)].verses = verses;
-                db.put(doc, function(err, response) {
-                    if (err) {
-                        // $("#replaced-text-change").modal('toggle');
-                        // alertModal("dynamic-msg-error", "dynamic-msg-went-wrong");
-                    } else {
-                        that.setState({ loader:true })
-                        window.location.reload();
-                    }
-                });
-            }
-            replacedChapter = {};
-            replacedVerse = {};
-        } else {
-            doc.chapters = chapter_arr
-            db.put(doc, function(err, res) {
-                if (err) {
-                    chapter_arr = [];
-                    // $("#replaced-text-change").modal('toggle');
-                    // alertModal("dynamic-msg-error", "dynamic-msg-went-wrong");
-                } else {
-                    chapter_arr = [];
-                    replacedChapter = {};
-                    replacedVerse = {};
-                    that.setState({ loader:true })
-                    window.location.reload();
-                }
-            })
+      let totalReplacedWord = 0;
+      if (replaceOption === "chapter") {
+        totalReplacedWord = findReplaceSearchInputs(
+          doc.chapters[parseInt(AutographaStore.chapterId, 10) - 1].verses,
+          AutographaStore.chapterId - 1,
+          replaceOption
+        );
+        allChapterReplaceCount.push(totalReplacedWord);
+      } else {
+        for (let i = 0; i < doc.chapters.length; i++) {
+          let replaceWord = findReplaceSearchInputs(
+            doc.chapters[parseInt(i + 1, 10) - 1].verses,
+            i,
+            replaceOption
+          );
+          allChapterReplaceCount.push(replaceWord);
+          replaceWord = 0;
         }
-    })
-  }
+      }
+      var replacedCount = allChapterReplaceCount.reduce(function (a, b) {
+        return a + b;
+      }, 0);
 
-//   loadData = () => {
-//     this.props.loadData()
-//     this.setState({replaceInfo: false})
-//     AutographaStore.replaceOption = "chapter";
-//   }
+      setReplaceCount(replacedCount);
+      setReplaceInfo(true);
+      totalReplacedWord = 0;
+      allChapterReplaceCount = [];
+    });
+  };
 
-    replaceContentAndSave(){
-      let newContent;
-      let replaceCount;
-      let allChapterReplaceCount = [];
-      const searchValue = AutographaStore.searchValue;
-      const replaceValue = AutographaStore.replaceValue;
-      let oldContent = AutographaStore.translationContent;
-      this.findAndReplaceText(AutographaStore.searchValue, AutographaStore.replaceValue, AutographaStore.replaceOption);
-      AutographaStore.showModalSearch = false;
+  const findReplaceSearchInputs = (verses, chapter, option) => {
+    let replacedChapter = {};
+    var i;
+    let replaceCount = 0;
+    for (i = 1; i <= verses.length; i++) {
+      if (option === "chapter") {
+        let originalVerse = verses[i - 1].verse;
+        replacedVerse[i] = i;
+        if (
+          originalVerse.search(new RegExp(searchRegExp(searchValue), "g")) >= 0
+        ) {
+          let modifiedVerse = originalVerse.replace(
+            new RegExp(searchRegExp(searchValue), "g"),
+            replaceValue
+          );
+          replacedVerse[i] = modifiedVerse;
+          chapter_hash["verse"] = modifiedVerse;
+          chapter_hash["verse_number"] = i;
+          verses_arr.push(chapter_hash);
+          chapter_hash = {};
+          replaceCount += originalVerse.match(
+            new RegExp(searchRegExp(searchValue), "g")
+          ).length;
+        } else {
+          replacedVerse[i] = originalVerse;
+          chapter_hash["verse"] = originalVerse;
+          chapter_hash["verse_number"] = i;
+          verses_arr.push(chapter_hash);
+          chapter_hash = {};
+          replaceCount += 0;
+        }
+      } else {
+        let originalVerse = verses[i - 1].verse;
+        replacedVerse[i] = i;
+        if (
+          originalVerse.search(new RegExp(searchRegExp(searchValue), "g")) >= 0
+        ) {
+          let modifiedVerse = originalVerse.replace(
+            new RegExp(searchRegExp(searchValue), "g"),
+            replaceValue
+          );
+          chapter_hash["verse"] = modifiedVerse;
+          chapter_hash["verse_number"] = i;
+          verses_arr.push(chapter_hash);
+          chapter_hash = {};
+          replaceCount += originalVerse.match(new RegExp(searchValue, "g"))
+            .length;
+        } else {
+          chapter_hash["verse"] = originalVerse;
+          chapter_hash["verse_number"] = i;
+          verses_arr.push(chapter_hash);
+          chapter_hash = {};
+          replaceCount += 0;
+        }
+      }
     }
+    replacedChapter[chapter] = replacedVerse;
+    setReplacedChapters(replacedChapter);
+    allChapters["chapter"] = chapter + 1;
+    allChapters["verses"] = verses_arr;
+    chapter_arr.push(allChapters);
+    verses_arr = [];
+    allChapters = {};
+    return replaceCount;
+  };
 
-  render (){
-    let closeSearch = () => {
-      AutographaStore.showModalSearch = false;
-      AutographaStore.replaceOption = "chapter";
-    }
-    let closeReplaceModal = () => {
-      this.setState({ replaceInfo: false })
-      this.setState({ disableSave: false })
-      this.setState({ replaceCount: 0 })
-      AutographaStore.replaceOption = "chapter";
-      window.location.reload()
-    }
-    let wordBook = AutographaStore.currentTrans["dynamic-msg-book"];
-    let wordReplace = AutographaStore.currentTrans["label-total-word-replaced"]
-    if(this.state.loader===true) {
-       return <Loader />
-    }
-    return (  
-      <div>
-      <Modal show={AutographaStore.showModalSearch} onHide={closeSearch} id="tab-search">
-        <Modal.Header closeButton>
-          <Modal.Title><FormattedMessage id="label-find-replace" /></Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <FormGroup >
-            <RadioButtonGroup valueSelected= {AutographaStore.replaceOption} onChange={this.handleOption} name="SearchAndReplace" style={{display: "flex", marginBottom:"2%"}}>
-              <RadioButton
-                value="chapter"
-                label={<FormattedMessage id="label-current-chapter" />}
-                style={{width: "40%"}}
+  const searchRegExp = (str) => {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  };
+
+  const handleSummaryClose = () => {
+    setOpen(false);
+    setReplaceInfo(false);
+    setReplaceOption("chapter");
+    window.location.reload();
+  };
+
+  const saveReplacedText = () => {
+    db.get(AutographaStore.bookId.toString()).then((doc) => {
+      if (replaceOption === "chapter") {
+        for (var c in replacedChapters) {
+          var verses = doc.chapters[AutographaStore.chapterId - 1].verses;
+          verses.forEach((verse, index) => {
+            verse.verse = replacedChapters[c][index + 1];
+          });
+          doc.chapters[parseInt(c, 10)].verses = verses;
+          db.put(doc, function (err, response) {
+            if (err) {
+              console.log("Error");
+              // $("#replaced-text-change").modal('toggle');
+              // alertModal("dynamic-msg-error", "dynamic-msg-went-wrong");
+            } else {
+              // that.setState({ loader: true });
+              window.location.reload();
+            }
+          });
+        }
+        setReplacedChapters({});
+        replacedVerse = {};
+      } else {
+        doc.chapters = chapter_arr;
+        db.put(doc, function (err, res) {
+          if (err) {
+            chapter_arr = [];
+            // $("#replaced-text-change").modal('toggle');
+            // alertModal("dynamic-msg-error", "dynamic-msg-went-wrong");
+          } else {
+            chapter_arr = [];
+            replacedVerse = {};
+            // that.setState({ loader: true });
+            window.location.reload();
+          }
+        });
+      }
+    });
+  };
+
+  return (
+    <div>
+      <SearchIcon onClick={handleClickOpen} />
+      <Dialog
+        onClose={handleClose}
+        aria-labelledby="customized-dialog-title"
+        open={open}
+      >
+        <DialogTitle id="customized-dialog-title" onClose={handleClose}>
+          Find and Replace
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography gutterBottom>
+            <FormControl component="fieldset">
+              <RadioGroup
+                row
+                aria-label="position"
+                name="FindAndReplace"
+                value={replaceOption}
+                onChange={handleOption}
+              >
+                <FormControlLabel
+                  value="chapter"
+                  control={<Radio color="primary" />}
+                  label="Current Chapter"
+                />
+                <FormControlLabel
+                  value="book"
+                  control={<Radio color="primary" />}
+                  label="Current Book"
+                />
+              </RadioGroup>
+            </FormControl>
+          </Typography>
+          <Typography>
+            <form className={classes.formRoot} noValidate autoComplete="off">
+              <TextField
+                id="outlined-basic"
+                label="Find"
+                variant="outlined"
+                value={searchValue}
+                onChange={handleFindChange}
               />
-              <RadioButton
-                value="book"
-                className="book"
-                label={<FormattedMessage id="label-current-book" />}
-                style={{width: "40%"}}
+            </form>
+            <form className={classes.formRoot} noValidate autoComplete="off">
+              <TextField
+                id="outlined-basic"
+                label="Replace"
+                variant="outlined"
+                value={replaceValue}
+                onChange={handleReplaceChange}
               />
-            </RadioButtonGroup>
-          </FormGroup>
-          <div>
-            <label><FormattedMessage id="label-find" /></label><br />
-            <TextField
-              className="placeholder-search-text"
-              style={{marginTop: "-12px"}}
-              hintText={<FormattedMessage id="placeholder-search-text" />}
-              onChange={this.handleFindChange.bind(this)}
-            />
-            <br />
-            <label><FormattedMessage id="label-replace-with" /></label><br />
-            <TextField
-              style={{marginTop: "-12px"}}
-              hintText={<FormattedMessage id="placeholder-replace-text" />}
-              onChange={this.handleReplaceChange.bind(this)}
-            />
-            <br />
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <RaisedButton
-            style={{float: "right"}}
-            className="btn-replace"
-            label={<FormattedMessage id="btn-replace" />}
-            primary={true}
-            onClick={this.replaceContentAndSave.bind(this)}
-            disabled = {AutographaStore.searchValue === null || AutographaStore.searchValue === '' ? true : false}
-          />
-        </Modal.Footer>
-      </Modal>
-
-      <Modal show={this.state.replaceInfo} onHide={closeReplaceModal} id="replace-modal">
-        <Modal.Header closeButton>
-          <Modal.Title><FormattedMessage id="label-replaced-information" /></Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="row">
-              <div className="col-lg-6" id="replace-message">
-                  {this.state.replaceCount} {AutographaStore.currentTrans["label-occurrences-replaced"]}
-              </div>
-              </div>
-          <div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <RaisedButton
-            style={{marginRight: "10px"}}
-            className="btn-save-changes"
-            label={<FormattedMessage id="btn-save-changes" />}
-            primary={true}
-            disabled={this.state.disableSave}
-            onClick={this.saveReplacedText}
-          />
-          <RaisedButton
-            label={<FormattedMessage id="btn-cancel" />}
-            primary={true}
-            onClick={closeReplaceModal}
-          />
-        </Modal.Footer>
-      </Modal>
-      </div>
-    )
-  }
+            </form>
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            autoFocus
+            onClick={findAndReplaceText}
+            color="primary"
+            disabled={searchValue ? false : true}
+          >
+            Replace
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        onClose={handleSummaryClose}
+        aria-labelledby="customized-dialog-title"
+        open={replaceInfo}
+      >
+        <DialogTitle id="customized-dialog-title" onClose={handleSummaryClose}>
+          Replacement Summary
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography>
+            <p>{replaceCount} occurrences replaced.</p>
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            autoFocus
+            onClick={saveReplacedText}
+            color="primary"
+            disabled={replaceCount === 0}
+          >
+            Save
+          </Button>
+          <Button autoFocus onClick={handleSummaryClose} color="primary">
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
 }
-
-module.exports = SearchModal

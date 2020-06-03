@@ -1,20 +1,20 @@
 # Contributing
 
 When contributing to this repository, kindly first discuss the change you wish to make via Github issue or
-email with the owners of this repository before making the change. 
+email with the owners of this repository before making the change.
 
 Please note we have a code of conduct, which needs to observed in all your interactions with the project.
 
 ## Pull Request Process
 
 1. Ensure no install or build dependencies are inadvertently pushed in your code change.
-2. Provide a clear and detailed description of the intention and implementation of your 
-change and your motivation to do so along with your Pull Request. 
-Give details of changes to the interface, this includes new environment variables, exposed ports, 
-useful file locations and container parameters. Include code for tests and spell out known issues/bugs.
+2. Provide a clear and detailed description of the intention and implementation of your
+   change and your motivation to do so along with your Pull Request.
+   Give details of changes to the interface, this includes new environment variables, exposed ports,
+   useful file locations and container parameters. Include code for tests and spell out known issues/bugs.
 3. Each pull request would be given ample attention and time for consideration and
-would be considered in the order of the user demand for the change. The decision to either change/merge/reject the Pull Request
-would be made in a collaborative manner.
+   would be considered in the order of the user demand for the change. The decision to either change/merge/reject the Pull Request
+   would be made in a collaborative manner.
 
 # Contributor Covenant Code of Conduct
 
@@ -29,22 +29,22 @@ our community a harassment-free experience.
 Examples of behavior that contributes to creating a positive environment
 include:
 
-* Using welcoming and inclusive language
-* Being respectful of differing viewpoints and experiences
-* Gracefully accepting constructive criticism
-* Focusing on what is best for the community
-* Showing empathy towards other community members
+-   Using welcoming and inclusive language
+-   Being respectful of differing viewpoints and experiences
+-   Gracefully accepting constructive criticism
+-   Focusing on what is best for the community
+-   Showing empathy towards other community members
 
 Examples of unacceptable behavior by participants include:
 
-* The use of sexualized language or imagery and unwelcome sexual attention or
-advances
-* Trolling, insulting/derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or electronic
-  address, without explicit permission
-* Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+-   The use of sexualized language or imagery and unwelcome sexual attention or
+    advances
+-   Trolling, insulting/derogatory comments, and personal or political attacks
+-   Public or private harassment
+-   Publishing others' private information, such as a physical or electronic
+    address, without explicit permission
+-   Other conduct which could reasonably be considered inappropriate in a
+    professional setting
 
 ## Our Responsibilities
 
@@ -70,7 +70,7 @@ further defined and clarified by project maintainers.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at 	autographa [dot] support [at] bridgeconn [dot] com. All
+reported by contacting the project team at autographa [dot] support [at] bridgeconn [dot] com. All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
