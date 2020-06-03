@@ -70,10 +70,9 @@ jobs:
             - name: npm install
               run: npm ci
 
-            - name: build linux and mac
+            - name: build windows
               id: build
               run: |
-                  npm run build
                   npm run electron-pack
 
             - name: Cleanup artifacts
