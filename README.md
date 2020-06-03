@@ -1,3 +1,2 @@
-# autographa
-
-A Bible translation editor for everyone.
+# Autographa CI and CD
+Github Actions test
